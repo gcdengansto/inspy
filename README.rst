@@ -5,7 +5,7 @@ inspy
     New releases may not be backwards compatibile. This software is in a fluid state and undergoes rapid changes. Bug fix and maintanence releases will generally be  backwards compatibile updates. Major number releases (x.0) could potentially break backwards compatibility, but users will be notified in the changelog.
 
 .. warning::
-    Official support for Python 2.6 and Python 3.3 has been discontinued. inspy may continue to work with these versions, but automatic testing for these versions is no longer performed, therefore compatibility cannot be guaranteed. CI tests also no longer run on OSX, but no compatibility issues are expected due to the source-only nature of this package.
+    Official support for Python 3.3 has been discontinued. inspy may continue to work with these versions, but automatic testing for these versions is no longer performed, therefore compatibility cannot be guaranteed. CI tests also no longer run on OSX, but no compatibility issues are expected due to the source-only nature of this package.
 
 **TravisCI** |mastertravis| :: **Appveyor** |masterappveyor| :: **Codecov** |coverage|
 
@@ -19,7 +19,7 @@ inspy
         :target: https://codecov.io/gh/inspy/inspy
 
 
-inspy is a python library with commonly used tools for neutron scattering measurements, primarily for Triple Axis Spectrometer data, but easily applied to other types of data, including some *reduced* Time of Flight data. Below is a non-exhaustive list of Neutronpy's features:
+inspy is a python library with commonly used tools for neutron scattering measurements, primarily for Triple Axis Spectrometer data, but easily applied to other types of data, including some *reduced* Time of Flight data. Below is a non-exhaustive list of inspy's features:
 
     * Triple Axis Spectrometer resolution function calculation (Translated from ResLib), including
         * Resolution ellipses
@@ -91,7 +91,6 @@ Documentation
 -------------
 Documentation is available at `inspy.github.io <https://inspy.github.io/>`_, or can be built using sphinx by navigating to the doc/ folder and executing ``make html``; results will be in the ``doc/_build/`` folder.
 
-To ask questions you may either `request access <http://goo.gl/forms/odTeCYQQEc>`_ to the `Neutronpy Slack Team <http://inspy.slack.com>`_, or create a `Github issue <https://github.com/inspy/inspy/issues/new>`_.
 
 Building documentation requires the following additional packages:
 
@@ -104,13 +103,7 @@ Contributions
 -------------
 Contributions may be made by submitting a pull-request for review using the fork-and-pull method on GitHub. Feature requests and bug reports can be made using the GitHub issues interface. Please read the `development guide <https://inspy.github.io/development.html>`_ for details on how to best contribute.
 
-To discuss development you may `request access <http://goo.gl/forms/odTeCYQQEc>`_ to the `Neutronpy Slack Team <http://inspy.slack.com>`_.
 
-Copyright & Licensing
----------------------
-Copyright (c) 2014-2018, David M. Fobes, Released under terms in LICENSE.
-
-The source for the Triple Axis Spectrometer resolution calculations was translated in part from the `ResLib <http://www.neutron.ethz.ch/research/resources/reslib>`_ 3.4c (2009) library released under the terms in LICENSE.RESLIB, originally developed by Andrey Zheludev at Brookhaven National Laboratory, Oak Ridge National Laboratory and ETH Zuerich. email: zhelud@ethz.ch.
 
 Disclaimer
 ----------
