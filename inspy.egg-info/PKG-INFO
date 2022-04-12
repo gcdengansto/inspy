@@ -1,0 +1,33 @@
+Metadata-Version: 1.2
+Name: inspy
+Version: 0.2.5
+Summary: INSPy: Neutron scattering tools for scientific data analysis in python
+Home-page: https://github.com/inspy/inspy
+Author: Guochu Deng
+Author-email: guochu.deng@ansto.gov.author
+Maintainer: gcdeng
+License: MIT
+Download-URL: https://github.com/inspy/inspy/releases
+Description: INSPy is a collection of commonly used tools aimed at facilitating the
+        analysis of neutron scattering data. INSPy is built primarily using the
+        numpy and scipy python libraries, with a translation of ResLib 3.4c (MatLab)
+        routines for Instrument resolution calculations.
+        
+        
+Platform: Windows
+Platform: Linux
+Platform: Mac OS X
+Platform: Unix
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Scientific/Engineering :: Physics
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: Unix
+Classifier: Operating System :: MacOS :: MacOS X
