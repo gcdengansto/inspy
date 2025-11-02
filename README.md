@@ -1,6 +1,11 @@
 # InsPy
 Inelastic Neutron Scattering Resolution Calculation Python Package
 
+The latest version InsPy 0.2.6 can be found in the following link:
+
+https://github.com/gcdengansto/inspy-v0.2.6
+
+
 InsPy
 =========
 
@@ -9,8 +14,6 @@ InsPy
 
 .. warning::
     Official support for Python 2.7 and Python 3.3 has been discontinued.
-
-
 
 
 InsPy is a python library with commonly used tools for neutron scattering measurements, primarily for Triple Axis Spectrometer data.
