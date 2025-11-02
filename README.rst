@@ -1,3 +1,10 @@
+# InsPy
+Inelastic Neutron Scattering Resolution Calculation Python Package
+
+The latest version InsPy 0.2.6 can be found in the following link:
+
+https://github.com/gcdengansto/inspy-v0.2.6
+
 
 InsPy
 =========
