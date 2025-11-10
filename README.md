@@ -1,10 +1,6 @@
 # InsPy
 Inelastic Neutron Scattering Resolution Calculation Python Package
 
-The latest version InsPy 0.2.6 can be found in the following link:
-
-https://github.com/gcdengansto/inspy-v0.2.6
-
 
 ## InsPy
 =========
@@ -25,7 +21,6 @@ InsPy is a python library with commonly used tools for inelastic neutron scatter
         * Built-in physical models
     * GUI interface for Resolution Calculation and Resolution Convolution Fitting without coding
         * Two GUI interfaces for convolution fitting.
-
 
 
 Inspy is a python package to conduct the resolution calculation for the inelastic neutron scattering experiment with triple-axis spectrometers. 
@@ -56,7 +51,7 @@ The following packages are required to test this library:
 
 
 ## Installation
-------------
+-----------------
 
 Local installation: go to the folder of InsPy
 
@@ -65,7 +60,7 @@ Local installation: go to the folder of InsPy
 See Installation for more detailed instructions.
 
 ## Documentation
--------------
+------------------
 Please refer to the following article for detailed information about this package InsPy:
 
 [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
@@ -96,7 +91,7 @@ The source code of Inspy is partially from the python package [Neutronpy](https:
 If the source code in this Python package is used for data analysis for publications, please cite the article mentioned above. Namely, [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
 
 ## Disclaimer
-----------
+---------------
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
