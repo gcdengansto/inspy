@@ -66,13 +66,13 @@ See Installation for more detailed instructions.
 
 Documentation
 -------------
-Documentation is available at `inspy.github.io <https://inspy.github.io/>`_, 
-Building documentation requires the following additional packages:
+Please refer to the following article for detailed information about this package InsPy:
+[TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
+by Guochu Deng* and Garry J. McIntyre, JOURNAL OF APPLIED CRYSTALLOGRAPHY Volume 58, Page 1-14,  2025
+https://doi.org/10.1107/S1600576725008180
 
-* ``sphinx>=1.4``
-* ``releases>=1.5.0``
-* ``numpydoc>=0.8.0``
-* ``inspy_rtd_sphinx_theme``
+Please find the tutorial  in [the examples folder](https://github.com/gcdengansto/inspy/examples).
+
 
 Contributions
 -------------
@@ -86,6 +86,8 @@ Copyright (c) 2020-2025, Guochu Deng, Released under terms in LICENSE.
 
 The source code of Inspy is partially from the python package Neutronpy (<https://neutronpy.github.io/>, which was developed by David M Fobes) after tests and fixing bugs.
 The source code for the Triple Axis Spectrometer resolution calculations was partially based on or translated from the MATLAB library ResLib 3.4c (<http://www.neutron.ethz.ch/research/resources/reslib>`  which was originally developed by Andrey Zheludev, ETH Zuerich. email: zhelud@ethz.ch).
+
+If the source code in this Python package is used for data analysis for publications, please cite the article mentioned above. Namely, [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
 
 Disclaimer
 ----------
