@@ -91,7 +91,7 @@ Copyright & Licensing
 ---------------------
 Copyright (c) 2020-2025, Guochu Deng, Released under terms in MIT LICENSE.
 
-The source code of Inspy is partially from the python package [Neutronpy](https://neutronpy.github.io/), which was developed by D. M Fobes with signifiant changes and updates. The source code for the triple-axis spectrometer resolution calculation was partially based on or translated from the MATLAB library [ResLib 3.4c] (http://www.neutron.ethz.ch/research/resources/reslib),  which was originally developed by A. Zheludev, ETH Zuerich.
+The source code of Inspy is partially from the python package [Neutronpy](https://neutronpy.github.io/), which was developed by D. M Fobes with signifiant changes and updates. The source code for the triple-axis spectrometer resolution calculation was partially based on or translated from the MATLAB library [ResLib 3.4c](http://www.neutron.ethz.ch/research/resources/reslib),  which was originally developed by A. Zheludev, ETH Zuerich.
 
 If the source code in this Python package is used for data analysis for publications, please cite the article mentioned above. Namely, [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
 
