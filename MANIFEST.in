@@ -1,0 +1,10 @@
+include MANIFEST.in
+include *.txt
+include *.rst
+
+recursive-include inspy *.py *.ui
+recursive-include inspy/database *.json
+
+recursive-include doc/_build/latex *.pdf
+
+global-exclude *.pyc *.pyo *.pyd

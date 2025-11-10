@@ -1,0 +1,6 @@
+numpy>=1.10
+scipy>=1.0
+matplotlib>=2.0
+lmfit>=0.9.5
+h5py
+plotly>=4.5
