@@ -69,9 +69,14 @@ Documentation
 Please refer to the following article for detailed information about this package InsPy:
 [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
 by Guochu Deng* and Garry J. McIntyre, JOURNAL OF APPLIED CRYSTALLOGRAPHY Volume 58, Page 1-14,  2025
-https://doi.org/10.1107/S1600576725008180
+The DOI of this article is as follows:
 
-Please find the tutorial  in [the examples folder](https://github.com/gcdengansto/inspy/examples).
+[https://doi.org/10.1107/S1600576725008180](https://doi.org/10.1107/S1600576725008180)
+
+Please find [the tutorial](https://github.com/gcdengansto/inspy/blob/main/examples/TasVisAn_Demo.ipynb)  in [the examples folder](https://github.com/gcdengansto/inspy/examples).
+
+The video clips demonstrating how to run the GUIs for data fitting in this package can be found here:
+[InsPy_demon](https://doi.org/10.1107/S1600576725008180/te5154sup3.mp4)
 
 
 Contributions
