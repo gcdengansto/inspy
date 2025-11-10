@@ -6,7 +6,7 @@ The latest version InsPy 0.2.6 can be found in the following link:
 https://github.com/gcdengansto/inspy-v0.2.6
 
 
-InsPy
+## InsPy
 =========
 
 .. warning::
@@ -16,7 +16,7 @@ InsPy
     Official support for Python 2.7 and Python 3.3 has been discontinued.
 
 
-InsPy is a python library with commonly used tools for neutron scattering measurements, primarily for Triple Axis Spectrometer data.
+InsPy is a python library with commonly used tools for inelastic neutron scattering measurements, primarily for Triple Axis Spectrometer data.
 
     * Triple Axis Spectrometer resolution function calculation (based on ResLib), including
         * Resolution ellipses
@@ -34,7 +34,7 @@ Inspy is developed on the basis of the python package Neutronpy, which was devel
 Inspy involves significant upgrades in comparison to Neutronpy. Inspy is able to do the 3D resolution calculation and plot 3D resolution functions, fit the triple-axis spectrometer by convolting the instrument resolution. The bugs in the resolution calculation have been corrected. Two GUI interfaces were implemented to do the reolsution calcualtion and data fitting. 
 InsPy is a work-in-progress and as such, still has many bugs, so use at your own risk; see Disclaimer. To report bugs or suggest features see Contributions.
 
-Requirements
+## Requirements
 ------------
 The following packages are required to install this library:
 
@@ -55,7 +55,7 @@ The following packages are required to test this library:
 
 
 
-Installation
+## Installation
 ------------
 
 Local installation: go to the folder of InsPy
@@ -64,7 +64,7 @@ Local installation: go to the folder of InsPy
 
 See Installation for more detailed instructions.
 
-Documentation
+## Documentation
 -------------
 Please refer to the following article for detailed information about this package InsPy:
 
@@ -82,12 +82,12 @@ The video clips demonstrating how to run the GUIs for data fitting in this packa
 [InsPy_demon](https://doi.org/10.1107/S1600576725008180/te5154sup3.mp4)
 
 
-Contributions
+## Contributions
 -------------
 Feature requests and bug reports can be made using the GitHub issues interface. 
 
 
-Copyright & Licensing
+## Copyright & Licensing
 ---------------------
 Copyright (c) 2020-2025, Guochu Deng, Released under terms in MIT LICENSE.
 
@@ -95,7 +95,7 @@ The source code of Inspy is partially from the python package [Neutronpy](https:
 
 If the source code in this Python package is used for data analysis for publications, please cite the article mentioned above. Namely, [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
 
-Disclaimer
+## Disclaimer
 ----------
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
