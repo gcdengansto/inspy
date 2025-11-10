@@ -1,0 +1,5 @@
+docs/* linguist-documentation
+*.html linguist-documentation
+*.js   linguist-documentation
+*.css  linguist-documentation
+src/*.py linguist-language=Python
