@@ -7,8 +7,6 @@ This document provides step‑by‑step instructions for installing **Miniforge*
 ## 1. Overview and recommendations
 
 - **Why Miniforge?** Miniforge is a minimal conda distribution that uses the `conda-forge` community channel by default. It is lightweight and widely used in research and reproducible workflows.
-- **Use an environment** for projects to avoid dependency conflicts. We show how to create a dedicated environment (example name: `pyenv`).
-- **Prefer `mamba`** for faster dependency solving. `mamba` is a drop-in replacement for `conda` and uses the same syntax.
 
 ---
 
@@ -24,22 +22,17 @@ This document provides step‑by‑step instructions for installing **Miniforge*
 
 ### 3.1 Windows (PowerShell)
 
-1. Open PowerShell (recommended: **Run as user** — not necessary to run as Administrator for a per-user install).
-2. Download the Miniforge installer (example uses `winget` if available) or download from the Miniforge GitHub releases page and run it.
+1. Go to https://conda-forge.org/download/ to download the proper version of Miniforge installer according to your OS system.
+2. Assume that the installer is saved in the folder of Downloads under the user folder.
 
 **Using `winget` (Windows 10/11 with winget):**
 
-```powershell
-winget install --id=condaforge.Miniforge -e
-```
 
 **Manual (if winget not available):**
 
-1. Visit the Miniforge releases page and download the `Miniforge3-Windows-x86_64.exe` (or `arm64` if applicable).
-2. Run the `.exe` and follow the installer prompts. Recommended choices:
+1. Run the `.exe` and follow the installer prompts. Recommended choices:
    - Install for `Just Me` (unless you have a reason to do system-wide).
    - Allow the installer to initialize `conda` by adding it to the PATH or use the installer default that adds a “conda init” step to your shell.
-
 After install, close PowerShell and re-open a new PowerShell window (or run `conda init powershell` and restart shell).
 
 
@@ -77,19 +70,13 @@ Then close and reopen your Terminal.
 bash ~/Downloads/Miniforge3-Linux-x86_64.sh
 
 # follow the prompts; accept the license and choose install path (default ~/.miniforge)
-```
-
-3. Initialize your shell if needed:
-
-```bash
-~/.miniforge/bin/conda init bash
-# or for zsh
-~/.miniforge/bin/conda init zsh
+# follow the prompts; accept the step of initialization
 ```
 
 Re-open the terminal once completed.
 
 ---
+open the terminal in any OS, you should see the prompt like: (base)xxxx: 
 
 ## 4. Verify installation
 
@@ -105,26 +92,7 @@ If `conda` is not found, ensure the Miniforge `bin` directory is on your PATH, e
 
 ---
 
-## 5. Create and activate a conda environment
-
-**Recommended:** create a fresh environment named `pyenv` with a specific Python version (example uses Python 3.11). Adjust the version as required.
-
-```bash
-# create environment (conda)
-conda create -n pyenv python=3.11 -y
-
-# or using mamba if you installed it
-mamba create -n pyenv python=3.11 -y
-
-# activate
-conda activate pyenv
-```
-
-You should see the environment name in the prompt: `(pyenv)`.
-
----
-
-## 6. Install packages
+## 5. Install packages
 
 We will install packages from `conda-forge` where possible because `conda-forge` often has high-quality builds and handles compiled dependencies.
 
@@ -147,12 +115,6 @@ conda activate base
 conda install mamba -n base -c conda-forge -y
 ```
 
-Then use `mamba` to install packages into `pyenv`:
-
-```bash
-conda activate pyenv
-mamba install numpy scipy matplotlib pandas plotly pyside6 jupyter -c conda-forge -y
-```
 
 This will install all listed packages from `conda-forge`.
 
@@ -181,11 +143,8 @@ pip install some_package_not_on_conda
 ## 7. Install and run Jupyter Notebook
 
 ```bash
-conda activate pyenv
-# if jupyter was installed above you can run:
-jupyter notebook
 
-# or install if missing
+# install and run
 conda install jupyter -c conda-forge -y
 jupyter notebook
 ```
@@ -201,50 +160,57 @@ jupyter lab
 
 ---
 
-## 8. Example `environment.yml` (reproducible environment)
-
-Save the following as `environment.yml` and create the environment from it. Useful for sharing or reproducibility.
-
-```yaml
-name: pyenv
-channels:
-  - conda-forge
-dependencies:
-  - python=3.11
-  - numpy
-  - scipy
-  - matplotlib
-  - pandas
-  - plotly
-  - pyside6
-  - jupyter
-  - pip
-  - pip:
-    - some-package-only-on-pypi
-```
-
-Create from the file:
-
+## 8. Install Inspy and TasVisAn
+### 1. Install Inspy
+It is recommended to install Inspy first because TasVisAn depend on Inspy while Inspy does not depend on TasVisAn.
+1. Download the source code of the InsPy package from github [https://github.com/gcdengansto/inspy/]
+2. Unzip the package into a path for keeping source code. e.g. C:\Users\marktwain\mycode\inspy
+3. Open terminal and change path to the folder of inspy with the setup.py file
+4. Run the following:
 ```bash
-conda env create -f environment.yml
-conda activate pyenv
-```
+pip install -e .       #the dot is important, meaning the current folder
 
+```
+There are some more packages which will be downloaded and installed depending how many has been installed. 
+At the end, you should see the last prompt saying that the package is succesfully installed. 
+
+### 2. Install TasVisAn
+After installing InsPy, we can follow the same way to install TasVisAn.
+1. Download the source code of the TasVisAn package from github [https://github.com/gcdengansto/tasvisan/]
+2. Unzip the package into a path for keeping source code. e.g. C:\Users\marktwain\mycode\TasVisAn
+3. Open terminal and change path to the folder of inspy with the setup.py file
+4. Run the following:
+```bash
+pip install -e .       #the dot is important, meaning the current folder
+
+```
+There are some more packages which will be downloaded and installed depending how many has been installed. 
+At the end, you should see the last prompt saying that the package is succesfully installed. 
 ---
 
 ## 9. Verifying installed packages
 
-Within `pyenv` run:
-
+After the two packages are successfully installed.
+You can verify if they work properly.
+Open a terminal to run python:
 ```bash
-python -c "import sys, numpy, scipy, matplotlib, pandas, plotly, PySide6; print('python', sys.version); print('numpy', numpy.__version__); print('scipy', scipy.__version__)"
+(base) C:\Users\marktwain>python
+in the python prompt, import inspy gui interface
+>>>import inspy.gui as gui
+>>>gui.main_gui.main()
+
 ```
 
-For PySide6 you can test import:
-
+For TasVisAn:
 ```bash
-python -c "import PySide6; print('PySide6 imported, version:', PySide6.__version__)"
+(base) C:\Users\marktwain>python
+in the python prompt, import inspy gui interface
+>>>import tasvisan.gui.TASDataBrowser as browser
+>>>browser.main()
 ```
+you should see a data browser dialog showing up.
+
+
 
 ---
 
@@ -268,26 +234,10 @@ If you need to remove Miniforge:
 
 ## 12. Quick command summary
 
-```bash
-# create env and install packages (quick):
-conda create -n pyenv python=3.11 -y
-conda activate pyenv
-conda install -c conda-forge numpy scipy matplotlib pandas plotly pyside6 jupyter -y
-# or fast with mamba:
-mamba install -c conda-forge numpy scipy matplotlib pandas plotly pyside6 jupyter -y
-```
-
 ---
 
 ## 13. Next steps and variants
 
-- **GPU support:** if you need GPU-enabled packages (e.g., `tensorflow`/`pytorch` with CUDA), follow the respective project documentation — these are often installed from specialized channels or via `pip` and have platform/driver dependencies.
-- **Lightweight alternative:** if you want a minimal install without conda, `miniconda` or `venv` + `pip` are alternatives; however, compiled scientific packages (NumPy/Scipy) may require building from source on some platforms.
-
 ---
 
-If you want, I can also:
-- Produce a minimal one‑page cheat sheet (short list of commands only).
-- Produce a Windows PowerShell script or macOS/Linux shell script to automate installation steps.
-- Produce an `environment.yml` tuned to your required versions.
 
