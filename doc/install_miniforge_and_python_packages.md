@@ -164,7 +164,7 @@ You can verify if they work properly.
 Open a terminal to run python:
 ```bash
 (base) C:\Users\marktwain>python
-in the python prompt, import inspy gui interface
+# in the python prompt, import inspy gui interface
 >>>import inspy.gui as gui
 >>>gui.main_gui.main()
 
@@ -172,7 +172,7 @@ in the python prompt, import inspy gui interface
 For TasVisAn:
 ```bash
 (base) C:\Users\marktwain>python
-in the python prompt, import inspy gui interface
+# in the python prompt, import inspy gui interface
 >>>import tasvisan.gui.TASDataBrowser as browser
 >>>browser.main()
 ```
