@@ -33,8 +33,8 @@ This document provides step‑by‑step instructions for installing **Miniforge*
 1. Run the `.exe` and follow the installer prompts. Recommended choices:
    - Install for `Just Me` (unless you have a reason to do system-wide).
    - Allow the installer to initialize `conda` by adding it to the PATH or use the installer default that adds a “conda init” step to your shell.
-After install, close PowerShell and re-open a new PowerShell window (or run `conda init powershell` and restart shell).
-
+After install, open a new PowerShell window (or run `conda init powershell` and restart shell).
+or open the miniForge Prompt window
 
 ### 3.2 macOS
 
@@ -46,17 +46,8 @@ After install, close PowerShell and re-open a new PowerShell window (or run `con
 bash ~/Downloads/Miniforge3-MacOSX-arm64.sh
 
 # follow prompts: accept license, and choose install location (default is ~/.miniforge)
+# follow the prompts; accept the step of initialization
 ```
-
-3. Initialize shell (if installer did not already do it):
-
-```bash
-# for zsh (default on modern macOS)
-~/.miniforge/bin/conda init zsh
-# or for bash
-~/.miniforge/bin/conda init bash
-```
-
 Then close and reopen your Terminal.
 
 
@@ -84,13 +75,7 @@ Open a new shell and run:
 
 ```bash
 conda --version
-# or
-mamba --version   # if installed
 ```
-
-If `conda` is not found, ensure the Miniforge `bin` directory is on your PATH, e.g. `~/.miniforge/bin` (macOS/Linux) or `C:\Users\<you>\Miniforge3\Scripts` on Windows (PowerShell should normally work after `conda init`).
-
----
 
 ## 5. Install packages
 
@@ -105,20 +90,10 @@ conda config --set channel_priority strict
 
 > Note: Miniforge defaults to `conda-forge`, but running these commands ensures the configuration in case of a different setup.
 
-### 6.2 Fast install with `mamba` (recommended)
-
-If you don't have `mamba`, install it first in the base environment or the environment where you prefer to solve packages:
-
-```bash
-# install mamba into base (so it can be used to create environments quickly)
-conda activate base
-conda install mamba -n base -c conda-forge -y
-```
-
 
 This will install all listed packages from `conda-forge`.
 
-### 6.3 Using `conda` (if you prefer not to install mamba)
+### 6.2 Using `conda` (if you prefer not to install mamba)
 
 ```bash
 conda activate pyenv
@@ -135,7 +110,6 @@ conda install numpy scipy matplotlib pandas plotly pyside6 jupyter -c conda-forg
 conda activate pyenv
 pip install some_package_not_on_conda
 ```
-
 **Caveat:** mixing `conda` and `pip` is acceptable but can sometimes create conflicts — prefer `conda-forge` when possible.
 
 ---
@@ -143,22 +117,18 @@ pip install some_package_not_on_conda
 ## 7. Install and run Jupyter Notebook
 
 ```bash
-
 # install and run
 conda install jupyter -c conda-forge -y
 jupyter notebook
 ```
 
 This opens a browser window with the Notebook interface. To stop the server, press `Ctrl+C` in the terminal.
-
 If you prefer JupyterLab:
 
 ```bash
 mamba install jupyterlab -c conda-forge -y
 jupyter lab
 ```
-
----
 
 ## 8. Install Inspy and TasVisAn
 ### 1. Install Inspy
@@ -169,7 +139,6 @@ It is recommended to install Inspy first because TasVisAn depend on Inspy while 
 4. Run the following:
 ```bash
 pip install -e .       #the dot is important, meaning the current folder
-
 ```
 There are some more packages which will be downloaded and installed depending how many has been installed. 
 At the end, you should see the last prompt saying that the package is succesfully installed. 
@@ -186,7 +155,7 @@ pip install -e .       #the dot is important, meaning the current folder
 ```
 There are some more packages which will be downloaded and installed depending how many has been installed. 
 At the end, you should see the last prompt saying that the package is succesfully installed. 
----
+
 
 ## 9. Verifying installed packages
 
@@ -200,7 +169,6 @@ in the python prompt, import inspy gui interface
 >>>gui.main_gui.main()
 
 ```
-
 For TasVisAn:
 ```bash
 (base) C:\Users\marktwain>python
@@ -210,9 +178,6 @@ in the python prompt, import inspy gui interface
 ```
 you should see a data browser dialog showing up.
 
-
-
----
 
 ## 10. Common troubleshooting
 
