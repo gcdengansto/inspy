@@ -9,11 +9,11 @@ Created on Thu Jan 30 13:27:29 2020
 import os
 import sys
 
-from PyQt5 import uic
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QSizePolicy, QTextEdit, QVBoxLayout)
+from qtpy import uic
+from qtpy.QtWidgets import (QApplication, QMainWindow, QSizePolicy, QTextEdit, QVBoxLayout)
 
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg  import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from inspy import Energy
 from inspy import TripleAxisSpectr

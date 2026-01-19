@@ -38,17 +38,17 @@ def setup_package():
     """
 
     metadata = dict(name='inspy',
-                    version='0.2.6',
+                    version='0.2.7',
                     description=DOCLINES[0],
                     long_description="\n".join(DOCLINES[2:]),
                     author='Guochu Deng',
                     author_email='guochu.deng@ansto.gov.au',
                     maintainer='Guochu Deng',
-                    download_url='https://github.com/inspy/inspy/releases',
-                    url='https://github.com/inspy/inspy',
+                    download_url='https://github.com/gcdengansto/inspy/releases',
+                    url='https://github.com/gcdengansto/inspy',
                     license='MIT',
                     platforms=["Windows", "Linux", "Mac OS X", "Unix"],
-                    install_requires=['numpy>=1.10', 'scipy>=1.0', 'matplotlib>=2.0', 'lmfit>=0.9.5', 'h5py','plotly>=4.5'],
+                    install_requires=['numpy>=1.50', 'scipy>=1.0','pandas', 'matplotlib>=2.0', 'lmfit>=1.2.0', 'h5py','QtPy','plotly>=4.5'],
                     setup_requires=[],
                     tests_require=[],
                     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
@@ -56,7 +56,7 @@ def setup_package():
                     package_data={'inspy': ['database/*.json', '/gui/ui/*.ui']},
                     packages=['inspy', 'inspy.crystal', 'inspy.gui','inspy.insfit',
                                'inspy.instrument'],
-                    entry_points={"console_scripts": ["inspy=inspy.gui.gui:launch"]}, )
+                    entry_points={"console_scripts": ["inspy=inspy.gui.main_gui:main"]}, )
 
     setup(**metadata)
 

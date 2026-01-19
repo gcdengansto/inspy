@@ -7,10 +7,10 @@ import os
 import sys
 
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg  import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PyQt5 import uic
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout,QTextEdit)
+from qtpy import uic
+from qtpy.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout,QTextEdit)
 from lmfit import Parameters, Minimizer, fit_report, report_fit
 
 

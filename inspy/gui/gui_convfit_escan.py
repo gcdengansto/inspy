@@ -7,10 +7,10 @@ import os
 import sys
 
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg  import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PyQt5 import uic
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout, QTextEdit)
+from qtpy import uic
+from qtpy.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout, QTextEdit)
 
 from ..energy import Energy
 from ..instrument.tools import get_tau, _cleanargs, _star, _modvec

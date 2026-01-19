@@ -23,7 +23,7 @@ from .insfit import FitConv
 try:
     from .gui.main_gui import main
 except ImportError:
-    warnings.warn('PyQt5 not found, cannot run Resolution GUI')
+    warnings.warn('QtPy not found, cannot run Resolution GUI')
 
 __version__ = pkg_resources.require("inspy")[0].version
 
