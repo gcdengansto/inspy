@@ -3,15 +3,16 @@ r"""GUI for resolution calculations
 
 TESTING ONLY FOR NOW
 """
-import os
-import sys
+
+try:
+    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+except ImportError:
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from qtpy.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout, QTextEdit)
+from qtpy  import uic
 
 import numpy as np
-from matplotlib.backends.backend_qtagg  import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from qtpy  import uic
-from qtpy.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout, QTextEdit)
-
 from ..energy import Energy
 from ..instrument.tools import get_tau, _cleanargs, _star, _modvec
 from ..instrument.tas_spectr import TripleAxisSpectr
@@ -75,8 +76,9 @@ class MainWindow(QMainWindow):
         
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-
-        uic.loadUi(os.path.join(os.path.dirname(__file__), 'ui\\ResConFitEScan.ui'), self)
+        # Replace with platform-independent path
+        uic.loadUi(os.path.join(os.path.dirname(__file__), 'ui', 'ResConFitEScan.ui'), self)
+        #uic.loadUi(os.path.join(os.path.dirname(__file__), 'ui\\ResConFitEScan.ui'), self)
 
         self.qxqyplot = QVBoxLayout(self.qx_qy_plot_widget)
         self.qxwplot  = QVBoxLayout(self.qx_w_plot_widget)
@@ -244,8 +246,11 @@ class MainWindow(QMainWindow):
             self.clearLayout(self.qxwplot)
             self.clearLayout(self.qywplot)
             #self.clearLayout(self.dataplot)
-        except:
+        except AttributeError:
+            # Layouts don't exist yet on first run
             pass
+        except Exception as e:
+            print(f"Warning: Error clearing layouts: {e}")
 
         qxqy = MyStaticMplCanvas(self.qx_qy_plot_widget, width=201, height=201, dpi=80, qslice='QxQy')
         self.qxqyplot.addWidget(qxqy)
@@ -357,34 +362,66 @@ class MainWindow(QMainWindow):
         while layout.count():
             child = layout.takeAt(0)
             child.widget().deleteLater()
-    
+            
     def loadData(self):
         fname = QFileDialog.getOpenFileName(self, "open file", "", "data file(*.hklw)")
-        #print(fname)
-        self.filepath, self.filename=os.path.split(fname[0])
-        print('Path:'+self.filepath+';Name:'+self.filename)
         
-        if  not ( fname[0] == '') :
+        if not fname[0]:  # User cancelled
+            return
+            
+        self.filepath, self.filename = os.path.split(fname[0])
+        print(f'Path: {self.filepath}; Name: {self.filename}')
+        
+        try:
             self.fit_filepath.setText(fname[0])
             with open(fname[0], 'r') as f:
-                self.data=np.loadtxt(f, skiprows=1, unpack=True) #delimiter=',', 
-            [H, K, L, W, Iobs]=self.data
-            dIobs= np.sqrt(Iobs)
-            self.data_start=0
-            self.data_end=self.data.shape[1]
+                self.data = np.loadtxt(f, skiprows=1, unpack=True)
+            
+            if self.data.size == 0:
+                print("Error: Data file is empty")
+                return
+                
+            [H, K, L, W, Iobs] = self.data
+            if np.any(Iobs < 0):
+                print("Warning: Negative intensity values found in data. Taking absolute value.")
+                Iobs = np.abs(Iobs)
+
+            dIobs = np.sqrt(Iobs)
+            self.data_start = 0
+            self.data_end = self.data.shape[1]
             self.fit_data_start.setText(str(self.data_start))
             self.fit_data_end.setText(str(self.data_end))
             self.dplot.axes.clear()
-            self.dplot.axes.plot(W,Iobs, "bo")
+            self.dplot.axes.plot(W, Iobs, "bo")
             self.dplot.axes.set_xlabel('Energy [meV]', fontsize=8)
             self.dplot.axes.set_ylabel('Intensity [a.u]', fontsize=8)
             self.dplot.fig.canvas.draw_idle()
-        
-    
+        except (IOError, OSError) as e:
+            print(f"Error reading file: {e}")
+        except ValueError as e:
+            print(f"Error parsing data file: {e}. Check file format.")
+        except Exception as e:
+            print(f"Unexpected error loading data: {e}")
+
+
+
     def initData(self):
+        if not hasattr(self, 'data') or self.data is None or self.data.size == 0:
+            print("Error: No data loaded. Please load data first.")
+            return
+        
+        if self.data_start < 0 or self.data_end > self.data.shape[1]:
+            print(f"Error: Invalid data range [{self.data_start}:{self.data_end}]")
+            return
+        
+        if self.data_start >= self.data_end:
+            print("Error: data_start must be less than data_end")
+            return
+        
         self.load_instrument()
         [H, K, L, W, Iobs] = self.data[:, self.data_start:self.data_end]
         dIobs= np.sqrt(Iobs)
+
         if self.chkMagFF.isChecked(): 
             AA=self.ffactor["AA"]
             aa=self.ffactor["aa"]
@@ -468,11 +505,19 @@ class MainWindow(QMainWindow):
 
         self.fit_output_text.clear()
         self.fit_output_text.insertPlainText(par_output+dat_output)
-        with open(os.path.join(self.filepath, self.filename[:-4] + '_par.txt'), "w") as par_file:
-            par_file.write(par_output)
-        with open(os.path.join(self.filepath, self.filename[:-4] + '_fit.txt'), "w") as fit_file:
-            fit_file.write(dat_output)
-        
+
+        try:
+            par_filename = os.path.join(self.filepath, self.filename[:-4] + '_par.txt')
+            with open(par_filename, "w") as par_file:
+                par_file.write(par_output)
+            print(f"Parameters saved to: {par_filename}")
+            
+            fit_filename = os.path.join(self.filepath, self.filename[:-4] + '_fit.txt')
+            with open(fit_filename, "w") as fit_file:
+                fit_file.write(dat_output)
+            print(f"Fit results saved to: {fit_filename}")
+        except (IOError, OSError) as e:
+            print(f"Error saving output files: {e}")
 
         
 def main():        

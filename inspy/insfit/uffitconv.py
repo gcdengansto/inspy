@@ -5,14 +5,14 @@ Ultra-Fast FitConv - Optimized for maximum speed
 Removes interface compatibility constraints for performance gains
 """
 import numpy as np
-import scipy as spy
+#import scipy as spy
 from scipy.optimize import least_squares
 import time
 from functools import lru_cache
 import warnings
 
 from ..instrument.tas_spectr import TripleAxisSpectr
-from ..instrument.tools import _scalar, _star,_modvec, _cleanargs
+#from ..instrument.tools import _scalar, _star,_modvec, _cleanargs
 
 
 class UltraFastFitConv(object):
@@ -45,13 +45,26 @@ class UltraFastFitConv(object):
         if precompute_data:
             self._preprocess_data(hkle, Iobs, dIobs)
         else:
+            #self.hkle = np.asarray(hkle, dtype=np.float64)
+            #self.Iobs = np.asarray(Iobs, dtype=np.float64)
+            #self.dIobs = np.asarray(dIobs, dtype=np.float64) if dIobs is not None else np.sqrt(self.Iobs)
+            #self.inv_dIobs = 1.0 / self.dIobs
             self.hkle = np.asarray(hkle, dtype=np.float64)
-            self.Iobs = np.asarray(Iobs, dtype=np.float64)
-            self.dIobs = np.asarray(dIobs, dtype=np.float64) if dIobs is not None else np.sqrt(self.Iobs)
-        
+            self.Iobs = np.asarray(Iobs, dtype=np.float64).ravel()
+            if dIobs is None:
+                self.dIobs = np.sqrt(np.maximum(self.Iobs, 1e-10))
+            else:
+                self.dIobs = np.asarray(dIobs, dtype=np.float64).ravel()
+            self.inv_dIobs = 1.0 / self.dIobs  # Add this line
+            
+            # Set npoints
+            [H, K, L, W] = self.hkle
+            self.npoints = H.size  # Add this line
         # Performance tracking
         self.fitcount = 0
         self._cache_size = cache_size
+        self._cached_model_eval = lru_cache(maxsize=cache_size)(self._model_eval)
+
         
         # Pre-allocate arrays for gradient calculations
         self._gradient_workspace = None
@@ -89,7 +102,7 @@ class UltraFastFitConv(object):
             self.inv_dIobs = 1.0 / self.dIobs
 
     @lru_cache(maxsize=128)
-    def _cached_model_eval(self, params_tuple, method='fix', accuracy_tuple=(7, 0)):
+    def _model_eval(self, params_tuple, method='fix', accuracy_tuple=(7, 0)):
         """Cached model evaluation to avoid repeated identical calculations"""
         params_array = np.array(params_tuple)
         accuracy_array = np.array(accuracy_tuple)
@@ -240,8 +253,7 @@ class UltraFastFitConv(object):
         def tracked_residual(free_params):
             progress_data['call_count'] += 1
             residuals = fast_residual(free_params)
-            
-            if verbose and progress_data['call_count'] % 20 == 0:  # Every 20 calls
+            if verbose and progress_data['call_count'] % 20 == 0 and DF > 0:  # Add DF > 0 check claude changed.
                 chi2 = np.sum(residuals**2) / DF
                 elapsed = time.time() - t_start
                 print(f"{self.fitcount:8d}   {chi2:10.6f}   {elapsed:8.2f}")
@@ -293,7 +305,8 @@ class UltraFastFitConv(object):
             try:
                 # Calculate covariance matrix
                 JTJ = result.jac.T @ result.jac
-                C = np.linalg.inv(JTJ)
+                s_sq = chisq / DF if DF > 0 else 1.0  # Residual variance claude changed 
+                C = np.linalg.inv(JTJ) * s_sq         # Residual variance claude changed *s_sq
                 param_errors[ivar] = np.sqrt(np.diag(C))
             except np.linalg.LinAlgError:
                 if verbose:

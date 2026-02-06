@@ -1,18 +1,10 @@
-import os
-import sys
-
 import numpy as np
-from matplotlib.backends.backend_qtagg  import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
-
 from ..energy import Energy
 from ..instrument.tools import get_tau, _cleanargs, _star, _modvec
 from ..instrument.tas_spectr import TripleAxisSpectr
-#from ..insfit import FitConv
 
 
-def angle2(x, y, z, h, k, l, lattice):
+def angle2old(x, y, z, h, k, l, lattice):
     r"""Function necessary for Prefactor functions
     """
     latticestar = _star(lattice)[-1]
@@ -21,7 +13,20 @@ def angle2(x, y, z, h, k, l, lattice):
         2 * np.pi * (h * x + k * y + l * z) / _modvec([x, y, z], lattice) / _modvec(
             [h, k, l], latticestar))
 
+
+def angle2(x, y, z, h, k, l, lattice):
+    latticestar = _star(lattice)[-1]
+    
+    denominator = _modvec([x, y, z], lattice) * _modvec([h, k, l], latticestar)
+    if denominator == 0:
+        ValueError("Denominator is zero.")
+    
+    numerator = 2 * np.pi * (h * x + k * y + l * z)
+    return np.arccos(np.clip(numerator / denominator, -1.0, 1.0))
+
 def SelFormFactor(magion=''):
+    if not magion:
+        raise ValueError("magion parameter is required")
     formfactList = [
         {"magion": "Sc0", "AA": 0.251200, "aa": 90.029600, "BB": 0.329000, "bb": 39.402100, "CC": 0.423500, "cc": 14.322200, "DD": -0.004300 },
         {"magion": "Sc1", "AA": 0.488900, "aa": 51.160300, "BB": 0.520300, "bb": 14.076400, "CC": -0.028600, "cc": 0.179200, "DD": 0.018500 },
@@ -121,8 +126,9 @@ def SelFormFactor(magion=''):
         {"magion": "Am6", "AA": 0.230200, "aa": 16.953300, "BB": 1.486400, "bb": 6.115900, "CC": -0.745700, "cc": 3.542600, "DD": 0.029400 },
         {"magion": "Am7", "AA": 0.360100, "aa": 12.729900, "BB": 1.964000, "bb": 5.120300, "CC": -1.356000, "cc": 3.714200, "DD": 0.031600 }
     ]
+    magion_upper = magion.upper()
     for item in formfactList:
-        if magion.upper() == item["magion"].upper():
+        if magion_upper == item["magion"].upper():
             print(f"The form factor of {magion} is found.")
             return item
     print(f"The mangetic ion {magion} is not found.")
@@ -132,51 +138,46 @@ def SelFormFactor(magion=''):
 def SqwDemo(H, K, L, W, p):
     r"""Example Scattering function for convolution tests
     """
-    #print(isinstance(W,np.ndarray))
-    #print(np.shape(W))
-    en1     =    p[0]   #peak 1
-    en2     =    p[1]   #peak 2
-    IntRatio=    p[2]
+    en1      =    p[0]   #peak 1
+    en2      =    p[1]   #peak 2
+    IntRatio =    p[2]
+    Gamma1   =    p[3]   # peak width 1
+    Gamma2   =    p[4]   # peak width 2 
+    #Int     =    p[5]
+    #Bg      =    p[6]
+    temp     =    p[7]
+    if temp <= 0:
+        raise ValueError(f"Temperature must be positive, got {temp}")
+    A1 = 1/((W-en1)**2+Gamma1**2)
+    B1 = 1/((W+en1)**2+Gamma1**2)
     
-    Gamma1 =     p[3]
-    Gamma2 =     p[4]  #this is the reason, gamma2 was not used. 
-    #Int= p[5]
-    #Bg=p[6]
-    temp   =     p[7]
+    A2 = 1/((W-en2)**2+Gamma2**2)
+    B2 = 1/((W+en2)**2+Gamma2**2)
     
-    A1=1/((W-en1)**2+Gamma1**2)
-    B1=1/((W+en1)**2+Gamma1**2)
-    
-    A2=1/((W-en2)**2+Gamma2**2)
-    B2=1/((W+en2)**2+Gamma2**2)
-    
-    BF=1+1/(1-np.exp(W/temp/0.08713))
-    #print(len(W))
-    #print('this is W:')
-    #print(W.size)
-    #print(W.shape)
-    #if W.size>100:
-        #print(W[:,0,0])
-        #print(W[:,3,0])
-        #print(W[:,0,5])
-    #print('this is A1:')
-    #print(A1)
+    # Bose-Einstein factor with safe division (kB = 0.08713 meV/K)
+    exp_term = np.exp(W / temp / 0.08713)
+    # Avoid division by zero when W ≈ 0
+    BF = np.where(np.abs(1 - exp_term) < 1e-10, 
+              1.0,  # When W ≈ 0, use classical limit
+              1 + 1 / (1 - exp_term))
+    #BF=1+1/(1-np.exp(W/temp/0.08713))
     
     sqw0=IntRatio*Gamma1*BF*(A1-B1) + Gamma2*BF*(A2-B2)
-    sqw1=IntRatio*Gamma1*BF*(A1-B1) + Gamma2*BF*(A2-B2)
-    #sqw1=np.zeros(sqw0.shape)
+    #sqw1=IntRatio*Gamma1*BF*(A1-B1) + Gamma2*BF*(A2-B2)
+    sqw1=np.zeros(sqw0.shape)
+    sqw2=np.zeros(sqw0.shape)
     
-    sqw = np.vstack((sqw0, sqw1, sqw1))
-    #print(np.size(sqw))
-    #print(sqw0)
+    sqw = np.vstack((sqw0, sqw1, sqw2))
     
     return sqw
-
 
 
 def PrefDemoFF(H, K, L, W, EXP, p):
     r"""Prefactor example for convolution tests
     """
+    if len(p) < 7:
+        raise ValueError(f"Parameter array 'p' must have at least 7 elements, got {len(p)}")
+
     [sample, rsample] = EXP.get_lattice()
 
     q2 = _modvec([H, K, L], rsample) ** 2
@@ -189,7 +190,7 @@ def PrefDemoFF(H, K, L, W, EXP, p):
         cc =   p[13]
         DD =   p[14]
         
-        # Now, use the Jane Brown approximate expression for Co2+
+        # Now, use the Jane Brown approximate expression for Magion
         sd = q2 / (16 * np.pi ** 2)
         ff = AA*np.exp(-aa*sd) + BB*np.exp(-bb*sd) + CC*np.exp(-cc*sd) + DD
     else:
@@ -210,7 +211,6 @@ def PrefDemoFF(H, K, L, W, EXP, p):
 
     bgr = np.ones(H.shape) * p[6]
     
-
     return [prefactor, bgr]
 
 
@@ -218,29 +218,29 @@ def PrefDemoFF(H, K, L, W, EXP, p):
 def SqwQScanTwoPeaks(H, K, L, W, p):
     r"""Example Scattering function for convolution tests
     """
-
     # Extract the three parameters contained in "p":
     q1    =   p[0]                    # peak1 q position
     q2    =   p[1]                    # peak1 q position
     ratio =   p[2]                    # Intensity ratio 
-    w1    =   p[3] 
-    w2    =   p[4]                    # peak width
+    w1    =   p[3]                    # peak width 1
+    w2    =   p[4]                    # peak width 2
 
-    temp   =     p[7]
+    temp  =   p[7]
 
-    BF     = 1 + 1/(1-np.exp(W/temp/0.08713))
+    #BF     = 1 + 1/(1-np.exp(W/temp/0.08713))
+    exp_term = np.exp(W / temp / 0.08713)
+    BF = np.where(np.abs(1 - exp_term) < 1e-10, 
+              1.0,
+              1 + 1 / (1 - exp_term))
 
     A1=1/(w1*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(H-q1)**2/w1**2)
     
     A2=1/(w2*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(H-q2)**2/w2**2)
 
-    sqw0 = (A1 + ratio*A2)* BF  #   = A1 + ratio*A2
+    sqw0 = (A1 + ratio*A2)* BF            #   = A1 + ratio*A2
     sqw1 = np.zeros(sqw0.shape)
     sqw2 = np.zeros(sqw0.shape)
 
-
-
-    #print(np.size(sqw))
     sqw = np.vstack((sqw0, sqw1, sqw2))
     #print(sqw)
     return sqw

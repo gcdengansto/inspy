@@ -3,7 +3,7 @@
 
 # Define a TAS instrument for resolution calculations
 
-import datetime as dt
+#import datetime as dt
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import block_diag as blkdiag
@@ -97,10 +97,12 @@ class TripleAxisSpectr:
         self.moncor = 1
         self.description_string = "No description yet"
         self.HKLE = hkle
-
+        #self.hkle = hkle # maybe we should change into this line. i will think about later. 
+        self.arms = kwargs.get('arms', [200, 100, 100, 200, 100])  # default values claude add this line
         # Set any additional keyword arguments as attributes
         for key, value in kwargs.items():
-            setattr(self, key, value)
+            if key not in ['instr_type']:  # exclude already processed keys
+                setattr(self, key, value)
 
     def __repr__(self):
         return f"Instrument('tas', efixed={self.efixed})"
@@ -118,7 +120,7 @@ class TripleAxisSpectr:
         for key, value in self.__dict__.items():
             right_parent_val = getattr(right, key)
             try:
-                if not np.array_equal(value, right_parent_val, equal_nan=True):
+                if not np.allclose(value, right_parent_val, equal_nan=True):   #changed by claude
                     return False
             except (TypeError, ValueError):
                 if value != right_parent_val:
@@ -134,6 +136,8 @@ class TripleAxisSpectr:
 
     @mono.setter
     def mono(self, value):
+        if value is not None and not isinstance(value, Mono):
+            raise TypeError("mono must be a Mono instance")
         self._mono = value
 
     @property
@@ -142,6 +146,8 @@ class TripleAxisSpectr:
 
     @ana.setter
     def ana(self, value):
+        if value is not None and not isinstance(value, Ana):
+            raise TypeError("mono must be a Ana instance")
         self._ana = value
 
     @property
@@ -1094,6 +1100,10 @@ class TripleAxisSpectr:
                    
         Based on ResLib 3.4c, originally authored by A. Zheludev
         """
+        # check nargout, add:
+        if nargout not in [1, 2]:  # adjust based on actual valid values
+            raise ValueError(f"nargout must be 1, 2, or 3, got {nargout}")
+
         self.CalcResMatHKL(hkle)
         R0, RMS = np.copy(self.R0), self.RMS.copy()
 
@@ -1998,7 +2008,7 @@ class TripleAxisSpectr:
         
         SMAGridPoints   = 21
         EllipGridPoints = 21
-        bPlotInQSpace   = 1
+        bPlotInQSpace   = True
         
         if len(RANGE) < 6    :  print('Range must have the form [Xmin Xmax Ymin Ymax Emin Emax]')
         if EllipStyle is None: EllipStyle = 'g'
@@ -2042,7 +2052,7 @@ class TripleAxisSpectr:
             ycenter  =  qy[point]
             zcenter  =  qw[point]
             
-            if bPlotInQSpace == 0: #plot in HKL
+            if not bPlotInQSpace: #plot in HKL
 
                 Hlow = xlow*xvec[0]+ylow*yvec[0]
                 Klow = xlow*xvec[1]+ylow*yvec[1]
@@ -2120,13 +2130,16 @@ class TripleAxisSpectr:
                 #print(SZ)
                 #if  SZ > RANGE[5]: SZ = RANGE[5]
                 #if  SZ < RANGE[4]: SZ = RANGE[4]
-                if bPlotInQSpace ==1:
-
+                if bPlotInQSpace:  #True
                     plotlyfig.add_trace(go.Surface(x=SXg, y=SYg, z=SZ, colorscale = 'Viridis', opacity= 0.5))
                 else: 
-
-                    plotlyfig.add_trace(go.Surface(x=SXg, y=SYg, z=SZ, colorscale = 'Viridis', opacity= 0.5))
-
+                    # Convert SXg, SYg to HKL coordinates like done in lines 2345-2366
+                    Hgrid = SXg*xvec[0] + SYg*yvec[0]
+                    Kgrid = SXg*xvec[1] + SYg*yvec[1]
+                    Lgrid = SXg*xvec[2] + SYg*yvec[2]
+                    Agrid = Hgrid*self.orient1[0] + Kgrid*self.orient1[1] + Lgrid*self.orient1[2]
+                    Bgrid = Hgrid*self.orient2[0] + Kgrid*self.orient2[1] + Lgrid*self.orient2[2]
+                    plotlyfig.add_trace(go.Surface(x=Agrid, y=Bgrid, z=SZ, colorscale='Viridis'))
         #plot projections
         [proj3,sec]  =  project(RMS,2)
         [proj2,sec]  =  project(RMS,1)
@@ -2148,7 +2161,7 @@ class TripleAxisSpectr:
             xproj1 = np.ones(yproj1.shape)*RANGE[0]
 
             #convet to the HKL space rather than Q (A -1)
-            if bPlotInQSpace == 1: #plot in Q(A-1)
+            if bPlotInQSpace: # True then plot in Q(A-1)
                 #********************use plotly to plot into web browser*****************
                 plotlyfig.add_trace(go.Scatter3d(x=xproj1,y=yproj1,z=zproj1, mode='lines'))
                 plotlyfig.add_trace(go.Scatter3d(x=xproj2,y=yproj2,z=zproj2, mode='lines'))
@@ -2203,7 +2216,7 @@ class TripleAxisSpectr:
         SMAGridPoints   = 21
         EllipGridPoints = 21
         
-        bPlotInQSpace   = 1
+        bPlotInQSpace   = True
         
         if len(RANGE) < 6    :  print('Range must have the form [Xmin Xmax Ymin Ymax Emin Emax]')
         if EllipStyle is None: EllipStyle = 'g'
@@ -2247,7 +2260,7 @@ class TripleAxisSpectr:
             ycenter  =  qy[point]
             zcenter  =  qw[point]
             
-            if bPlotInQSpace == 0:             #plot in HKL
+            if not bPlotInQSpace:  #false, then  plot in HKL
 
                 Hlow = xlow*xvec[0]+ylow*yvec[0]
                 Klow = xlow*xvec[1]+ylow*yvec[1]
@@ -2308,10 +2321,17 @@ class TripleAxisSpectr:
             for mode in range(modes):
                 SZ=dispersion[:,:,mode]
 
-                if bPlotInQSpace ==1:
+                if bPlotInQSpace: #True then 
                     plotlyfig.add_trace(go.Surface(x=SXg, y=SYg, z=SZ, colorscale = 'Viridis'))
                 else: 
-                    plotlyfig.add_trace(go.Surface(x=SXg, y=SYg, z=SZ, colorscale = 'Viridis'))
+                    #plotlyfig.add_trace(go.Surface(x=SXg, y=SYg, z=SZ, colorscale = 'Viridis'))
+                        # Convert SXg, SYg to HKL coordinates like done in lines 2345-2366
+                    Hgrid = SXg*xvec[0] + SYg*yvec[0]
+                    Kgrid = SXg*xvec[1] + SYg*yvec[1]
+                    Lgrid = SXg*xvec[2] + SYg*yvec[2]
+                    Agrid = Hgrid*self.orient1[0] + Kgrid*self.orient1[1] + Lgrid*self.orient1[2]
+                    Bgrid = Hgrid*self.orient2[0] + Kgrid*self.orient2[1] + Lgrid*self.orient2[2]
+                    plotlyfig.add_trace(go.Surface(x=Agrid, y=Bgrid, z=SZ, colorscale='Viridis'))
 
         #plot projections
         [proj3,sec]  =  project(RMS,2)
@@ -2320,9 +2340,20 @@ class TripleAxisSpectr:
         phi =np.linspace(0.1, 2*np.pi+0.1,1001)                  # 0.1:2*pi/3000:2*pi+0.1
         
         for i in range(length):
-            r3     =  np.sqrt(2*np.log(2)/(proj3[i,0,0]*np.cos(phi)**2+proj3[i,1,1]*np.sin(phi)**2+2*proj3[i,0,1]*np.cos(phi)*np.sin(phi)))
-            r2     =  np.sqrt(2*np.log(2)/(proj2[i,0,0]*np.cos(phi)**2+proj2[i,1,1]*np.sin(phi)**2+2*proj2[i,0,1]*np.cos(phi)*np.sin(phi)))
-            r1     =  np.sqrt(2*np.log(2)/(proj1[i,0,0]*np.cos(phi)**2+proj1[i,1,1]*np.sin(phi)**2+2*proj1[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #r3     =  np.sqrt(2*np.log(2)/(proj3[i,0,0]*np.cos(phi)**2+proj3[i,1,1]*np.sin(phi)**2+2*proj3[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #r2     =  np.sqrt(2*np.log(2)/(proj2[i,0,0]*np.cos(phi)**2+proj2[i,1,1]*np.sin(phi)**2+2*proj2[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #r1     =  np.sqrt(2*np.log(2)/(proj1[i,0,0]*np.cos(phi)**2+proj1[i,1,1]*np.sin(phi)**2+2*proj1[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #replace by the following six lines of code
+            denominator3 = proj3[i,0,0]*np.cos(phi)**2+proj3[i,1,1]*np.sin(phi)**2+2*proj3[i,0,1]*np.cos(phi)*np.sin(phi)
+            r3 = np.sqrt(2*np.log(2)/np.maximum(denominator3, 1e-12))
+
+            denominator2 = proj2[i,0,0]*np.cos(phi)**2+proj2[i,1,1]*np.sin(phi)**2+2*proj2[i,0,1]*np.cos(phi)*np.sin(phi)
+            r2 = np.sqrt(2*np.log(2)/np.maximum(denominator2, 1e-12))
+
+            denominator1 = proj1[i,0,0]*np.cos(phi)**2+proj1[i,1,1]*np.sin(phi)**2+2*proj1[i,0,1]*np.cos(phi)*np.sin(phi)
+            r1 = np.sqrt(2*np.log(2)/np.maximum(denominator1, 1e-12))
+            
+            
             xproj3 = r3*np.cos(phi)+qx[i]
             yproj3 = r3*np.sin(phi)+qy[i]
             zproj3 = np.ones(xproj3.shape)*RANGE[4]
@@ -2334,7 +2365,7 @@ class TripleAxisSpectr:
             xproj1 = np.ones(yproj1.shape)*RANGE[0]
 
             #convet to the HKL space rather than Q (A -1)
-            if bPlotInQSpace == 1: #plot in Q(A-1)
+            if bPlotInQSpace: #True     plot in Q(A-1)
                 #********************use plotly to plot into web browser*****************
                 plotlyfig.add_trace(go.Scatter3d(x=xproj1,y=yproj1,z=zproj1, mode='lines'))
                 plotlyfig.add_trace(go.Scatter3d(x=xproj2,y=yproj2,z=zproj2, mode='lines'))
@@ -2416,15 +2447,21 @@ def  fproject(mat, i):
     
     [a,b,c]=mat.shape
 
+    if np.any(mat[:,v,v] == 0):
+        raise ValueError(f"Division by zero: mat[:,{v},{v}] contains zero values")
+
     proj=np.zeros([a,2,2])
 
     proj[:,0,0] = mat[:,i,i] - mat[:,i,v]**2/mat[:,v,v]
     proj[:,0,1] = mat[:,i,j] - mat[:,i,v]*mat[:,j,v]/mat[:,v,v]
     proj[:,1,0] = mat[:,j,i] - mat[:,j,v]*mat[:,i,v]/mat[:,v,v]
     proj[:,1,1] = mat[:,j,j] - mat[:,j,v]**2/mat[:,v,v]
-    hwhm = proj[:,0,0]-proj[:,0,1]**2/proj[:,1,1]
-
-    hwhm = np.sqrt(2*np.log(2))/np.sqrt(hwhm)
+    #hwhm = proj[:,0,0]-proj[:,0,1]**2/proj[:,1,1]
+    #hwhm = np.sqrt(2*np.log(2))/np.sqrt(hwhm)
+    #replaced by the following three lines
+    denominator = np.where(proj[:,1,1] != 0, proj[:,1,1], 1e-12)
+    hwhm = proj[:,0,0]-proj[:,0,1]**2/denominator
+    hwhm = np.where(hwhm > 0, np.sqrt(2*np.log(2))/np.sqrt(hwhm), 0)
 
     return hwhm
     
@@ -2446,6 +2483,8 @@ def  project(mat, v):
         mat=np.reshape(mat, [-1, mat.shape[0],mat.shape[1]])
  
     [a,b,c]=mat.shape
+    if np.any(mat[:,v,v] == 0):
+        raise ValueError(f"Division by zero: mat[:,{v},{v}] contains zero values")
 
     proj=np.zeros([a,2,2])
     sec =np.zeros([a,2,2])
@@ -2472,7 +2511,10 @@ def PlotEllipse(ax,mat,x0,y0,style):
     
     phi=np.linspace(0, 2*np.pi,1000)
     for i in range(a):
-        r = np.sqrt(2*np.log(2)/(mat[i,0,0]*np.cos(phi)**2+mat[i,1,1]*np.sin(phi)**2+2*mat[i,0,1]*np.cos(phi)*np.sin(phi)))
+        #r = np.sqrt(2*np.log(2)/(mat[i,0,0]*np.cos(phi)**2+mat[i,1,1]*np.sin(phi)**2+2*mat[i,0,1]*np.cos(phi)*np.sin(phi)))
+        #replaced by the following two lines
+        denominator = mat[i,0,0]*np.cos(phi)**2+mat[i,1,1]*np.sin(phi)**2+2*mat[i,0,1]*np.cos(phi)*np.sin(phi)
+        r = np.sqrt(2*np.log(2)/np.maximum(denominator, 1e-12))
         x = r*np.cos(phi)+x0[i]
         y = r*np.sin(phi)+y0[i]
 
@@ -2490,7 +2532,10 @@ def ProduceEllipse(mat,x0,y0):
     
     phi=np.linspace(0, 2*np.pi,1000)
     for i in range(a):
-        r[:,i] = np.sqrt(2*np.log(2)/(mat[i,0,0]*np.cos(phi)**2+mat[i,1,1]*np.sin(phi)**2+2*mat[i,0,1]*np.cos(phi)*np.sin(phi)))
+        #r[:,i] = np.sqrt(2*np.log(2)/(mat[i,0,0]*np.cos(phi)**2+mat[i,1,1]*np.sin(phi)**2+2*mat[i,0,1]*np.cos(phi)*np.sin(phi)))
+        #replaced by the following two lines
+        denominator = mat[i,0,0]*np.cos(phi)**2+mat[i,1,1]*np.sin(phi)**2+2*mat[i,0,1]*np.cos(phi)*np.sin(phi)
+        r[:,i] = np.sqrt(2*np.log(2)/np.maximum(denominator, 1e-12))
         x[:,i]  = r[:,i]*np.cos(phi)+x0[i]
         y[:,i]  = r[:,i]*np.sin(phi)+y0[i]
 

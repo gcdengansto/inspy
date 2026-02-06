@@ -18,19 +18,35 @@ class _dummy(object):
         self.name = name
         self.__dict__.update(kwargs)
 
+
+
+
     def __eq__(self, right):
+        if not isinstance(right, _dummy):
+            return False
+        
         self_parent_keys = sorted(list(self.__dict__.keys()))
         right_parent_keys = sorted(list(right.__dict__.keys()))
 
-        if not np.all(self_parent_keys == right_parent_keys):
+        # Proper list comparison
+        if self_parent_keys != right_parent_keys:
             return False
 
         for key, value in self.__dict__.items():
             right_parent_val = getattr(right, key)
-            if not np.all(value == right_parent_val):
-                return False
+            
+            # Handle numpy arrays properly
+            if isinstance(value, np.ndarray) and isinstance(right_parent_val, np.ndarray):
+                if not np.array_equal(value, right_parent_val):
+                    return False
+            elif isinstance(value, np.ndarray) or isinstance(right_parent_val, np.ndarray):
+                return False  # One is array, other isn't
+            else:
+                if value != right_parent_val:
+                    return False
 
         return True
+
 
     def __ne__(self, right):
         return not self.__eq__(right)
@@ -108,8 +124,7 @@ def get_tau(x, getlabel=False):
                'Si(111)'.lower(): 2 * np.pi / 3.135,
                'Cu(111)'.lower(): 2 * np.pi / 2.087,
                'Cu(002)'.lower(): 2 * np.pi / 1.807,
-               'Cu(220)'.lower(): 2 * np.pi / 1.278,
-               'Cu(111)'.lower(): 2 * np.pi / 2.095}
+               'Cu(220)'.lower(): 2 * np.pi / 1.278}
 
     if getlabel:
         # return the index/label of the closest monochromator
@@ -224,14 +239,17 @@ def _voigt(x, a):
     y = np.real(y)
     return y
 
-
 def project_into_plane(index, r0, rm):
-    #Projects out-of-plane resolution into a specified plane by performing
-    #a gaussian integral over the third axis.
-
-
+    """Projects out-of-plane resolution into a specified plane"""
+    
+    if rm[index, index] == 0:
+        raise ValueError(f"Cannot project: rm[{index}, {index}] is zero")
+    
+    if abs(rm[index, index]) < 1e-12:
+        raise ValueError(f"Cannot project: rm[{index}, {index}] is too small ({rm[index, index]})")
+    
     r = np.sqrt(2 * np.pi / rm[index, index]) * r0
-    mp = rm
+    mp = rm.copy()  # Don't modify input!
 
     b = rm[:, index] + rm[index, :].T
     b = np.delete(b, index, 0)
@@ -242,6 +260,7 @@ def project_into_plane(index, r0, rm):
     mp -= 1 / (4. * rm[index, index]) * np.outer(b, b.T)
 
     return [r, mp]
+
 
 
 def _ellipse(saxis1, saxis2, phi=0, origin=None, npts=31):
@@ -256,10 +275,17 @@ def _ellipse(saxis1, saxis2, phi=0, origin=None, npts=31):
     y = np.array(saxis1 * np.cos(theta) * np.sin(phi) + saxis2 * np.sin(theta) * np.cos(phi)) + origin[1]
     return np.vstack((x, y))
 
+    return bragg * 2
+
 
 def get_bragg_widths(RM):
-    #Returns the Bragg widths given a resolution matrix.
-
+    """Returns the Bragg widths given a resolution matrix."""
+    
+    # Validate diagonal elements
+    for i in range(4):
+        if RM[i, i] <= 0:
+            raise ValueError(f"Resolution matrix diagonal element RM[{i},{i}]={RM[i,i]} must be positive")
+    
     bragg = np.array([np.sqrt(8 * np.log(2)) / np.sqrt(RM[0, 0]),
                       np.sqrt(8 * np.log(2)) / np.sqrt(RM[1, 1]),
                       np.sqrt(8 * np.log(2)) / np.sqrt(RM[2, 2]),
@@ -267,7 +293,6 @@ def get_bragg_widths(RM):
                       np.sqrt(8 * np.log(2)) / np.sqrt(RM[3, 3])])
 
     return bragg * 2
-
 
 def get_phonon_width(r0, M, C):
     T = np.diag(np.ones(4))
@@ -307,8 +332,14 @@ def fproject(mat, i):
     return hwhm
 
 
+
 def calc_proj_hwhm(MP):
-    #
+    """Calculate projected half-widths at half-maximum"""
+    
+    # Validate diagonal elements
+    if MP[0, 0] <= 0 or MP[1, 1] <= 0:
+        raise ValueError(f"Matrix diagonal elements must be positive: MP[0,0]={MP[0,0]}, MP[1,1]={MP[1,1]}")
+    
     theta = 0.5 * np.arctan2(2 * MP[0, 1], (MP[0, 0] - MP[1, 1]))
     S = [[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]]
 
@@ -354,13 +385,14 @@ def get_kfree(W, kfixed, ki_fixed=True):
         return np.sqrt(k_sq)
 
 
-def chop(matrix, tol=1e-12):
-    #Rounds values within tol of zero down(up) to zero
 
+def chop(matrix, tol=1e-12):
+    """Rounds values within tol of zero down(up) to zero"""
+    
     if isinstance(matrix, tuple):
-        return tuple(chop(item) for item in matrix)
+        return tuple(chop(item, tol) for item in matrix)
     elif isinstance(matrix, list):
-        return list(chop(item) for item in matrix)
+        return list(chop(item, tol) for item in matrix)
     elif isinstance(matrix, (np.ndarray, np.matrixlib.defmatrix.matrix)):
         if np.iscomplexobj(matrix):
             rmat = matrix.real.copy()
@@ -371,19 +403,20 @@ def chop(matrix, tol=1e-12):
 
             return rmat + 1j * imat
         else:
-            matrix[np.abs(matrix) < tol] = 0.0
-            return matrix
+            matrix_copy = matrix.copy()  # ADD THIS LINE
+            matrix_copy[np.abs(matrix_copy) < tol] = 0.0
+            return matrix_copy
     elif isinstance(matrix, Number):
         if np.iscomplex(matrix):
             real = matrix.real
             imag = matrix.imag
-            if real < tol:
+            if abs(real) < tol:  # Use abs() for consistency
                 real = 0.0
-            if imag < tol:
+            if abs(imag) < tol:  # Use abs() for consistency
                 imag = 0.0
             return real + imag * 1j
         else:
-            if matrix < tol:
+            if abs(matrix) < tol:  # Use abs() for consistency
                 return 0.0
             else:
                 return matrix

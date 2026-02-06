@@ -4,13 +4,15 @@ import os
 import sys
 
 import numpy as np
-from matplotlib.backends.backend_qtagg  import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+#
+# Replace with backward compatibility
+try:
+    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+except ImportError:
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 from qtpy import uic
 from qtpy.QtWidgets import (QApplication, QFileDialog, QMainWindow, QSizePolicy, QVBoxLayout,QTextEdit)
-from lmfit import Parameters, Minimizer, fit_report, report_fit
-
-
 from ..energy import Energy
 from ..instrument.tools import get_tau, _cleanargs, _star, _modvec
 from ..instrument.tas_spectr import TripleAxisSpectr
@@ -78,7 +80,7 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
-        uic.loadUi(os.path.join(os.path.dirname(__file__), 'ui\\ResConFitQScanFF.ui'), self)
+        uic.loadUi(os.path.join(os.path.dirname(__file__), 'ui', 'ResConFitQScanFF.ui'), self)
 
         self.qxqyplot = QVBoxLayout(self.qx_qy_plot_widget)
         self.qxwplot  = QVBoxLayout(self.qx_w_plot_widget)
@@ -205,7 +207,8 @@ class MainWindow(QMainWindow):
             cc=self.ffactor["cc"]
             DD=self.ffactor["DD"]
 
-            self.mag_form_factor.setText( "{}  {}  {}  {}  {}  {}  {}".format(AA, aa, BB, bb, CC, cc, DD))
+            self.mag_form_factor.setText(f"{AA}  {aa}  {BB}  {bb}  {CC}  {cc}  {DD}")
+
         else:
             self.mag_ion_name = "NONE"
             self.ffactor = None
@@ -240,9 +243,12 @@ class MainWindow(QMainWindow):
             self.clearLayout(self.qxqyplot)
             self.clearLayout(self.qxwplot)
             self.clearLayout(self.qywplot)
-            #self.clearLayout(self.dataplot)
-        except:
+        except AttributeError:
+            # Layouts don't exist yet on first run
             pass
+        except Exception as e:
+            print(f"Warning: Error clearing layouts: {e}")
+
 
         qxqy = MyStaticMplCanvas(self.qx_qy_plot_widget, width=261, height=201, dpi=100, qslice='QxQy')
         self.qxqyplot.addWidget(qxqy)
@@ -342,42 +348,92 @@ class MainWindow(QMainWindow):
         while layout.count():
             child = layout.takeAt(0)
             child.widget().deleteLater()
-    
+
+        
     def loadData(self):
         fname = QFileDialog.getOpenFileName(self, "open file", "", "data file(*.hklw)")
-        #print(fname)
-        if  not ( fname[0] == '') :
+        
+        if not fname[0]:  # User cancelled
+            return
+        
+        try:
             self.fit_filepath.setText(fname[0])
             with open(fname[0], 'r') as f:
-                self.data      = np.loadtxt(f, unpack=True)
+                self.data = np.loadtxt(f, unpack=True)
+            
+            if self.data.shape[0] != 5:
+                print(f"Error: Expected 5 columns (H, K, L, W, Iobs), got {self.data.shape[0]}")
+                return
+            
             [H, K, L, W, Iobs] = self.data
-            dIobs           =   np.sqrt(Iobs)
-            self.data       =   np.array([H, K, L, W, Iobs, dIobs])
-            self.data_start =   0
-            self.data_end   =   self.data.shape[1]
+            
+            # Validate data
+            if np.any(Iobs < 0):
+                print("Warning: Negative intensity values found. Taking absolute value.")
+                Iobs = np.abs(Iobs)
+            
+            dIobs = np.sqrt(Iobs)
+            self.data = np.array([H, K, L, W, Iobs, dIobs])
+            self.data_start = 0
+            self.data_end = self.data.shape[1]
             
             self.fit_data_start.setText(str(self.data_start))
             self.fit_data_end.setText(str(self.data_end))
-            dH=np.abs(H[0] -H[-1])
-            dK=np.abs(K[0] -K[-1])
-            dL=np.abs(L[0] -L[-1])
-            if dH > 0.02 :
+            
+            dH = np.abs(H[0] - H[-1])
+            dK = np.abs(K[0] - K[-1])
+            dL = np.abs(L[0] - L[-1])
+            
+            if dH > 0.02:
                 self.scanAxis = "QH"
             elif dK > 0.02:
                 self.scanAxis = "QK"
             elif dL > 0.02:
                 self.scanAxis = "QL"
+            else:
+                print("Warning: Could not determine scan axis. Using QH.")
+                self.scanAxis = "QH"
 
-            hkl_dict = {"QH": H, "QK": K, "QL": L }
 
+            hkl_dict = {"QH": H, "QK": K, "QL": L}
+
+            # Use .get() with a default value
+            scan_data = hkl_dict.get(self.scanAxis, H)  # Default to H if scanAxis invalid
+            
             self.dplot.axes.clear()
-            self.dplot.axes.plot(hkl_dict[self.scanAxis], Iobs, "bo")
-            self.dplot.axes.set_xlabel(self.scanAxis+' [rlu]', fontsize=8)
+            self.dplot.axes.plot(scan_data, Iobs, "bo")
+            self.dplot.axes.set_xlabel(self.scanAxis + ' [rlu]', fontsize=8)
             self.dplot.axes.set_ylabel('Intensity [a.u]', fontsize=8)
             self.dplot.fig.canvas.draw_idle()
-        
-    
+            
+        except (IOError, OSError) as e:
+            print(f"Error reading file: {e}")
+        except ValueError as e:
+            print(f"Error parsing data file: {e}. Check file format.")
+        except Exception as e:
+            print(f"Unexpected error loading data: {e}")
+
+
+
     def initData(self):
+        if not hasattr(self, 'data') or self.data is None or self.data.size == 0:
+            print("Error: No data loaded. Please load data first.")
+            return
+        
+        if self.data_start < 0 or self.data_end > self.data.shape[1]:
+            print(f"Error: Invalid data range [{self.data_start}:{self.data_end}]")
+            return
+        
+        if self.data_start >= self.data_end:
+            print("Error: data_start must be less than data_end")
+            return
+        
+        if not hasattr(self, 'scanAxis') or not self.scanAxis:
+            print("Error: Scan axis not determined. Please reload data.")
+            return
+        
+        # Rest of the function...
+
         self.load_instrument()
         [H, K, L, W, Iobs, dIobs] = self.data[:,self.data_start:self.data_end]
         
@@ -404,8 +460,24 @@ class MainWindow(QMainWindow):
         self.dplot.fig.canvas.draw_idle()
         
         
-    
     def fitData(self):
+        if not hasattr(self, 'data') or self.data is None or self.data.size == 0:
+            print("Error: No data loaded. Please load data first.")
+            return
+        
+        if self.data_start < 0 or self.data_end > self.data.shape[1]:
+            print(f"Error: Invalid data range [{self.data_start}:{self.data_end}]")
+            return
+        
+        if self.data_start >= self.data_end:
+            print("Error: data_start must be less than data_end")
+            return
+        
+        if not hasattr(self, 'scanAxis') or not self.scanAxis:
+            print("Error: Scan axis not determined. Please reload data.")
+            return
+        
+        # Rest of the function...
         #fit the data using the input parameters:
         self.load_instrument()
         [H, K, L, W, Iobs, dIobs] = self.data[:,self.data_start:self.data_end]
@@ -439,17 +511,18 @@ class MainWindow(QMainWindow):
 
         self.dplot.axes.plot(newhkl_dict[self.scanAxis],final, "r-")
         self.dplot.fig.canvas.draw_idle()
-        
-        par_output="The fitted parameters:\n"
-        
-        par_output=par_output+self.scanAxis+"1  :\t{0:8f}  \t{1:8f}\n".format(final_params[0],param_errors[0])
-        par_output=par_output+self.scanAxis+"2  :\t{0:8f}  \t{1:8f}\n".format(final_params[1],param_errors[1])
-        par_output=par_output+"Int1 :\t{0:8f}  \t{1:8f}\n".format(final_params[2]*final_params[5],final_params[2]*param_errors[5])
-        par_output=par_output+"Int2 :\t{0:8f}  \t{1:8f}\n".format(final_params[5],param_errors[5])
-        par_output=par_output+"FWHM1:\t{0:8f}  \t{1:8f}\n".format(final_params[3],param_errors[3])
-        par_output=par_output+"FWHM2:\t{0:8f}  \t{1:8f}\n".format(final_params[4],param_errors[4])
-        par_output=par_output+"bg   :\t{0:8f}  \t{1:8f}\n".format(final_params[6],param_errors[6])
-        par_output=par_output+"temp :\t{0:8f}  \t{1:8f}\n".format(final_params[7],param_errors[7])
+                
+
+        # And for parameter output:
+        par_output = "The fitted parameters:\n"
+        par_output += f"{self.scanAxis}1  :\t{final_params[0]:8f}  \t{param_errors[0]:8f}\n"
+        par_output += f"{self.scanAxis}2  :\t{final_params[1]:8f}  \t{param_errors[1]:8f}\n"
+        par_output += f"Int1 :\t{final_params[2]*final_params[5]:8f}  \t{final_params[2]*param_errors[5]:8f}\n"
+        par_output += f"Int2 :\t{final_params[5]:8f}  \t{param_errors[5]:8f}\n"
+        par_output += f"FWHM1:\t{final_params[3]:8f}  \t{param_errors[3]:8f}\n"
+        par_output += f"FWHM2:\t{final_params[4]:8f}  \t{param_errors[4]:8f}\n"
+        par_output += f"bg   :\t{final_params[6]:8f}  \t{param_errors[6]:8f}\n"
+        par_output += f"temp :\t{final_params[7]:8f}  \t{param_errors[7]:8f}\n"
 
         dat_output="The origin data:\n    H\t    K\t    L\t  W\t  Iobs\t dIobs\t \n"
         oldHKLW=np.column_stack([H,K,L,W,Iobs,dIobs])
@@ -467,6 +540,24 @@ class MainWindow(QMainWindow):
 
         self.fit_output_text.clear()
         self.fit_output_text.insertPlainText(par_output+dat_output)
+
+        # At the end of fitData, add:
+        if hasattr(self, 'fit_filepath') and self.fit_filepath.text():
+            filepath = os.path.dirname(self.fit_filepath.text())
+            filename = os.path.basename(self.fit_filepath.text())
+            
+            try:
+                par_filename = os.path.join(filepath, filename[:-5] + '_par.txt')  # .hklw is 5 chars
+                with open(par_filename, "w") as par_file:
+                    par_file.write(par_output)
+                print(f"Parameters saved to: {par_filename}")
+                
+                fit_filename = os.path.join(filepath, filename[:-5] + '_fit.txt')
+                with open(fit_filename, "w") as fit_file:
+                    fit_file.write(dat_output)
+                print(f"Fit results saved to: {fit_filename}")
+            except (IOError, OSError) as e:
+                print(f"Error saving output files: {e}")
 
 
     
