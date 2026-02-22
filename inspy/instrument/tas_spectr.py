@@ -3,7 +3,7 @@
 
 # Define a TAS instrument for resolution calculations
 
-#import datetime as dt
+import datetime as dt
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import block_diag as blkdiag
@@ -44,6 +44,7 @@ class TripleAxisSpectr:
         # Initialize default sample if none provided
         if sample is None:
             sample = Sample(6, 7, 8, 90, 90, 90, u=[1, 0, 0], v=[0, 1, 0])
+            sample.dir=1
         
         # Initialize default monochromator if none provided
         if mono is None:
@@ -147,7 +148,7 @@ class TripleAxisSpectr:
     @ana.setter
     def ana(self, value):
         if value is not None and not isinstance(value, Ana):
-            raise TypeError("mono must be a Ana instance")
+            raise TypeError("ana must be a Ana instance")
         self._ana = value
 
     @property
@@ -441,6 +442,7 @@ class TripleAxisSpectr:
         Q = np.sqrt(qs)
 
         sm = self.mono.dir
+        #self.sample.dir=self.mono.dir*(-1)
         ss = self.sample.dir
         sa = self.ana.dir
         dm = 2 * np.pi / get_tau(self.mono.tau)
@@ -2013,8 +2015,8 @@ class TripleAxisSpectr:
         if len(RANGE) < 6    :  print('Range must have the form [Xmin Xmax Ymin Ymax Emin Emax]')
         if EllipStyle is None: EllipStyle = 'g'
         if XYStyle    is None: XYStyle    = '-p'
-        if XEStyle    is None: XYStyle    = '-c'
-        if YEStyle    is None: XYStyle    = '-b'
+        if XEStyle    is None: XEStyle    = '-c'
+        if YEStyle    is None: YEStyle    = '-b'
         if SMA        is None: print('SMA is not provided')
 
         if SMA is not None and (SXg is None or SYg is None):
@@ -2147,9 +2149,20 @@ class TripleAxisSpectr:
         phi =np.linspace(0.1, 2*np.pi+0.1,1001) # 0.1:2*pi/3000:2*pi+0.1
         
         for i in range(length):
-            r3  =  np.sqrt(2*np.log(2)/(proj3[i,0,0]*np.cos(phi)**2+proj3[i,1,1]*np.sin(phi)**2+2*proj3[i,0,1]*np.cos(phi)*np.sin(phi)))
-            r2  =  np.sqrt(2*np.log(2)/(proj2[i,0,0]*np.cos(phi)**2+proj2[i,1,1]*np.sin(phi)**2+2*proj2[i,0,1]*np.cos(phi)*np.sin(phi)))
-            r1  =  np.sqrt(2*np.log(2)/(proj1[i,0,0]*np.cos(phi)**2+proj1[i,1,1]*np.sin(phi)**2+2*proj1[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #r3  =  np.sqrt(2*np.log(2)/(proj3[i,0,0]*np.cos(phi)**2+proj3[i,1,1]*np.sin(phi)**2+2*proj3[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #r2  =  np.sqrt(2*np.log(2)/(proj2[i,0,0]*np.cos(phi)**2+proj2[i,1,1]*np.sin(phi)**2+2*proj2[i,0,1]*np.cos(phi)*np.sin(phi)))
+            #r1  =  np.sqrt(2*np.log(2)/(proj1[i,0,0]*np.cos(phi)**2+proj1[i,1,1]*np.sin(phi)**2+2*proj1[i,0,1]*np.cos(phi)*np.sin(phi)))
+            # Add check before computing r1, r2, r3:
+            denominator3 = proj3[i,0,0]*np.cos(phi)**2+proj3[i,1,1]*np.sin(phi)**2+2*proj3[i,0,1]*np.cos(phi)*np.sin(phi)
+            r3 = np.sqrt(2*np.log(2)/np.maximum(denominator3, 1e-12))
+            # Similar for r1, r2
+            denominator2 = proj2[i,0,0]*np.cos(phi)**2+proj2[i,1,1]*np.sin(phi)**2+2*proj2[i,0,1]*np.cos(phi)*np.sin(phi)
+            r2 = np.sqrt(2*np.log(2)/np.maximum(denominator3, 1e-12))
+
+            denominator1 = proj1[i,0,0]*np.cos(phi)**2+proj1[i,1,1]*np.sin(phi)**2+2*proj1[i,0,1]*np.cos(phi)*np.sin(phi)
+            r1 = np.sqrt(2*np.log(2)/np.maximum(denominator3, 1e-12))
+
+            
             xproj3 = r3*np.cos(phi)+qx[i]
             yproj3 = r3*np.sin(phi)+qy[i]
             zproj3 = np.ones(xproj3.shape)*RANGE[4]
@@ -2221,13 +2234,13 @@ class TripleAxisSpectr:
         if len(RANGE) < 6    :  print('Range must have the form [Xmin Xmax Ymin Ymax Emin Emax]')
         if EllipStyle is None: EllipStyle = 'g'
         if XYStyle    is None: XYStyle    = '-p'
-        if XEStyle    is None: XYStyle    = '-c'
-        if YEStyle    is None: XYStyle    = '-b'
+        if XEStyle    is None: XEStyle    = '-c'
+        if YEStyle    is None: YEStyle    = '-b'
         if SMA        is None: print('SMA is not provided')
 
         if SMA is not None and (SXg is None or SYg is None):
-            SX    =    np.linspace(RANGE(0),RANGE(1),SMAGridPoints)
-            SY    =    np.linspace(RANGE(2),RANGE(3),SMAGridPoints)
+            SX    =    np.linspace(RANGE[0],RANGE[1],SMAGridPoints)
+            SY    =    np.linspace(RANGE[2],RANGE[3],SMAGridPoints)
             [SXg, SYg] = np.meshgrid(SX,SY)
 
 
