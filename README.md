@@ -42,7 +42,8 @@ The following packages are required to install this library:
 
 The following package is required to use the ``inspy`` entry-point gui optional feature
 
-* ``pyqt5 >= 5.4.1``
+* ``qtpy``
+* ``PySide6``
 
 The following packages are required to test this library:
 
@@ -53,7 +54,15 @@ The following packages are required to test this library:
 ## Installation
 -----------------
 
-Local installation: go to the folder of InsPy
+Installation from PyPI:
+
+    pip install inspy-conv
+To use, still:
+
+    import inspy
+(For more info, please check https://github.com/gcdengansto/inspy-conv/)
+
+Local installation: go to the folder of inspy
 
     pip install -e .
 
