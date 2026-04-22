@@ -1,15 +1,11 @@
 # InsPy
 Inelastic Neutron Scattering Resolution Calculation Python Package
+The latest version has been published in PyPi repository with the name inspy-conv. Please check the information below:
 
+https://github.com/gcdengansto/inspy-conv
 
 ## InsPy
 =========
-
-.. warning::
-    New releases may not be backwards compatibile.
-
-.. warning::
-    Official support for Python 2.7 and Python 3.3 has been discontinued.
 
 
 InsPy is a python library with commonly used tools for inelastic neutron scattering measurements, primarily for Triple Axis Spectrometer data.
@@ -39,16 +35,6 @@ The following packages are required to install this library:
 * ``lmfit >= 1.0.2``
 * ``matplotlib >= 3.1.0``
 * ``h5py``
-
-The following package is required to use the ``inspy`` entry-point gui optional feature
-
-* ``qtpy``
-* ``PySide6``
-
-The following packages are required to test this library:
-
-* ``pytest >= 3``
-
 
 
 ## Installation
